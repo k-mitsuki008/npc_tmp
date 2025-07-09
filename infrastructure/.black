@@ -1,0 +1,20 @@
+[tool.black]
+line-length = 150
+target-version = ['py38', 'py39', 'py310', 'py312', 'py313']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.hg
+  | \.mypy_cache
+  | \.pytest_cache
+  | \.venv
+  | env
+  | \_build
+  | buck-out
+  | build
+  | dist
+  | cdk.out
+  | .cdk.local
+)/
+'''

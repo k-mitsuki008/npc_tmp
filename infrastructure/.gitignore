@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+.venv/
+*.egg-info/
+.pytest_cache/
+
+# AWS CDK
+cdk.out/
+.cdk.local/
+*.js
+*.d.ts
+node_modules/ # TypeScript/JavaScriptのプロジェクトと混在する場合
+cdk.context.json
+.env
+
+# OS generated files
+.DS_Store
+.Trashes
+Thumbs.db
