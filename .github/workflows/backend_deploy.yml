@@ -67,7 +67,7 @@ jobs:
       #     aws-region: ${{ env.REGION }}
 
       - name: Build and deploy SAM application
-        working-directory: ./backend
+        working-directory: ./backend/${{ matrix.domain }}_domain
         run: |
           ls
           pwd
