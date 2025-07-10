@@ -57,14 +57,12 @@ jobs:
             esac
           fi
 
-          # 解決したアカウントIDを後続ステップで使えるように出力
-          echo "${{ env.ACCOUNT }}"
-
-      # - name: Setup credentials
-      #   uses: aws-actions/configure-aws-credentials@v4
-      #   with:
-      #     role-to-assume: ${{ env.ROLE_ARN }}
-      #     aws-region: ${{ env.REGION }}
+      - name: Setup credentials
+        run: echo "The account ID is ${{ env.ACCOUNT }}"
+        # uses: aws-actions/configure-aws-credentials@v4
+        # with:
+        #   role-to-assume: ${{ env.ROLE_ARN }}
+        #   aws-region: ${{ env.REGION }}
 
       # ブランチ作成時にワークフローが実行されるため、コメントアウト
       # - name: Build and deploy SAM application
