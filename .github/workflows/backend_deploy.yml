@@ -62,15 +62,15 @@ jobs:
 
       - name: Setup credentials
         run: |
-          echo "The account ID is ${{ env.ACCOUNT }}"
-          echo "The ROLE_ARN is ${{ env.ROLE_ARN }}"
-        # uses: aws-actions/configure-aws-credentials@v4
-        # with:
-        #   role-to-assume: ${{ env.ROLE_ARN }}
-        #   aws-region: ${{ env.REGION }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.ROLE_ARN }}
+          aws-region: ${{ env.REGION }}
 
-      # ブランチ作成時にワークフローが実行されるため、コメントアウト
-      # - name: Build and deploy SAM application
-      #   run: |
-      #     sam build --config-env ${{ env.STAGE }}
-      #     sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --config-env ${{ env.STAGE }}
+      - name: Build and deploy SAM application
+        working-directory: ./backend
+        run: |
+          ls
+          pwd
+          # sam build --config-env ${{ env.STAGE }}
+          # sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --config-env ${{ env.STAGE }}
