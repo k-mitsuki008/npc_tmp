@@ -33,22 +33,32 @@ jobs:
         run: |
           if [ "${{ inputs.environment }}" == "dev" ]; then
             case ${{ matrix.account }} in
-              auth)         ACCOUNT_ID="111111111111" ;;
-              integration)  ACCOUNT_ID="222222222222" ;;
-              members)      ACCOUNT_ID="333333333333" ;;
-              parkings)     ACCOUNT_ID="444444444444" ;;
-              payments)     ACCOUNT_ID="555555555555" ;;
+              auth)         echo "ACCOUNT=1111" >> $GITHUB_ENV ;;
+              integration)  echo "ACCOUNT=2222" >> $GITHUB_ENV ;;
+              members)      echo "ACCOUNT=3333" >> $GITHUB_ENV ;;
+              parkings)     echo "ACCOUNT=4444" >> $GITHUB_ENV ;;
+              payments)     echo "ACCOUNT=5555" >> $GITHUB_ENV ;;
             esac
           elif [ "${{ inputs.environment }}" == "stg" ]; then
-            # (stg用のアカウントIDをここに記述)
-            ACCOUNT_ID="STG_ACCOUNT_ID_PLACEHOLDER"
+            case ${{ matrix.account }} in
+              auth)         echo "ACCOUNT=" >> $GITHUB_ENV ;;
+              integration)  echo "ACCOUNT=" >> $GITHUB_ENV ;;
+              members)      echo "ACCOUNT=" >> $GITHUB_ENV ;;
+              parkings)     echo "ACCOUNT=" >> $GITHUB_ENV ;;
+              payments)     echo "ACCOUNT=" >> $GITHUB_ENV ;;
+            esac
           elif [ "${{ inputs.environment }}" == "prd" ]; then
-            # (prd用のアカウントIDをここに記述)
-            ACCOUNT_ID="PRD_ACCOUNT_ID_PLACEHOLDER"
+            case ${{ matrix.account }} in
+              auth)         echo "ACCOUNT=" >> $GITHUB_ENV ;;
+              integration)  echo "ACCOUNT=" >> $GITHUB_ENV ;;
+              members)      echo "ACCOUNT=" >> $GITHUB_ENV ;;
+              parkings)     echo "ACCOUNT=" >> $GITHUB_ENV ;;
+              payments)     echo "ACCOUNT=" >> $GITHUB_ENV ;;
+            esac
           fi
 
           # 解決したアカウントIDを後続ステップで使えるように出力
-          echo "account_id=$ACCOUNT_ID" >> $GITHUB_OUTPUT
+          echo ${{ env.ACCOUNT }}
 
       # - name: Setup credentials
       #   uses: aws-actions/configure-aws-credentials@v4
