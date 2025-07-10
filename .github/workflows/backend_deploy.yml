@@ -60,11 +60,11 @@ jobs:
           echo 'REGION=ap-northeast-1' >> $GITHUB_ENV
           echo 'ROLE_ARN=arn:aws:iam::077239123954:role/npc-parkings-${{ inputs.environment }}-role-github-actions' >> $GITHUB_ENV
 
-      - name: Setup credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ env.ROLE_ARN }}
-          aws-region: ${{ env.REGION }}
+      # - name: Setup credentials
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   with:
+      #     role-to-assume: ${{ env.ROLE_ARN }}
+      #     aws-region: ${{ env.REGION }}
 
       - name: Build and deploy SAM application
         working-directory: ./backend
