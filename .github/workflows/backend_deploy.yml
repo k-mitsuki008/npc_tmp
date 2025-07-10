@@ -61,7 +61,6 @@ jobs:
           echo 'ROLE_ARN=arn:aws:iam::077239123954:role/npc-parkings-${{ inputs.environment }}-role-github-actions' >> $GITHUB_ENV
 
       - name: Setup credentials
-        run: |
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ env.ROLE_ARN }}
