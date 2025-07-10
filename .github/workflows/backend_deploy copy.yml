@@ -1,0 +1,72 @@
+name: Backend Multi-Stage Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        description: Stage for deployment
+        required: true
+        options:
+          - dev
+          - stg
+          - prd
+
+jobs:
+  build:
+    permissions:
+      id-token: write
+      contents: read
+
+    runs-on: ubuntu-latest
+
+    steps:
+      # コードをチェックアウト
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 環境変数の設定
+      - name: Setting variable
+        run: |
+          if [ "${{ github.event.inputs.environment }}" == "dev" ]; then
+            echo "MEMBERS_ACCOUNT=352126234225" >> $GITHUB_ENV
+            echo "PARKINGS_ACCOUNT=077239123954" >> $GITHUB_ENV
+            echo "PAYMENTS_ACCOUNT=915515002700" >> $GITHUB_ENV
+            echo "AUTH_ACCOUNT=121431344263" >> $GITHUB_ENV
+            echo "INTEGRATION_ACCOUNT=008700326646" >> $GITHUB_ENV
+          elif [ "${{ github.event.inputs.environment }}" == "stg" ]; then
+            echo "MEMBERS_ACCOUNT=XXXXXXXXXXXXX" >> $GITHUB_ENV
+            echo "PARKINGS_ACCOUNT=XXXXXXXXXXXXX" >> $GITHUB_ENV
+            echo "PAYMENTS_ACCOUNT=XXXXXXXXXXXXX" >> $GITHUB_ENV
+            echo "AUTH_ACCOUNT=XXXXXXXXXXXXX" >> $GITHUB_ENV
+            echo "INTEGRATION_ACCOUNT=XXXXXXXXXXXXX" >> $GITHUB_ENV
+          elif [ "${{ github.event.inputs.environment }}" == "prd" ]; then
+            echo "MEMBERS_ACCOUNT=XXXXXXXXXXXXX" >> $GITHUB_ENV
+            echo "PARKINGS_ACCOUNT=XXXXXXXXXXXXX" >> $GITHUB_ENV
+            echo "PAYMENTS_ACCOUNT=XXXXXXXXXXXXX" >> $GITHUB_ENV
+            echo "AUTH_ACCOUNT=XXXXXXXXXXXXX" >> $GITHUB_ENV
+            echo "INTEGRATION_ACCOUNT=XXXXXXXXXXXXX" >> $GITHUB_ENV
+          fi
+          echo 'PHASE=${{ github.event.inputs.environment }}' >> $GITHUB_ENV 
+          echo 'REGION=ap-northeast-1' >> $GITHUB_ENV
+          echo 'ROLE_ARN=arn:aws:iam::${{ env.ROLE_ARN }}:role/dayton-stg-github-actions-role' >> $GITHUB_ENV
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version : '3.13'
+
+      - name: Setup SAM
+        uses: aws-actions/setup-sam@v2
+
+      # - name: Setup credentials
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   with:
+      #     role-to-assume: ${{ env.ROLE_ARN }}
+      #     aws-region: ${{ env.REGION }}
+
+      # ブランチ作成時にワークフローが実行されるため、コメントアウト
+      # - name: Build and deploy SAM application
+      #   run: |
+      #     sam build --config-env ${{ env.STAGE }}
+      #     sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --config-env ${{ env.STAGE }}

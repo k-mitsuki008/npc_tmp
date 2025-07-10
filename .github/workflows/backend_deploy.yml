@@ -1,0 +1,63 @@
+name: Backend Multi-Stage Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        description: Stage for deployment
+        required: true
+        options:
+          - dev
+          - stg
+          - prd
+
+jobs:
+  deploy:
+    permissions:
+      id-token: write
+      contents: read
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        account: [auth, integration, members, parkings, payments]
+
+    steps:
+      # コードをチェックアウト
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 環境変数の設定
+      - name: Resolve AWS Account ID
+        id: resolve_ids
+        run: |
+          if [ "${{ inputs.environment }}" == "dev" ]; then
+            case ${{ matrix.account }} in
+              auth)         ACCOUNT_ID="111111111111" ;;
+              integration)  ACCOUNT_ID="222222222222" ;;
+              members)      ACCOUNT_ID="333333333333" ;;
+              parkings)     ACCOUNT_ID="444444444444" ;;
+              payments)     ACCOUNT_ID="555555555555" ;;
+            esac
+          elif [ "${{ inputs.environment }}" == "stg" ]; then
+            # (stg用のアカウントIDをここに記述)
+            ACCOUNT_ID="STG_ACCOUNT_ID_PLACEHOLDER"
+          elif [ "${{ inputs.environment }}" == "prd" ]; then
+            # (prd用のアカウントIDをここに記述)
+            ACCOUNT_ID="PRD_ACCOUNT_ID_PLACEHOLDER"
+          fi
+
+          # 解決したアカウントIDを後続ステップで使えるように出力
+          echo "account_id=$ACCOUNT_ID" >> $GITHUB_OUTPUT
+
+      # - name: Setup credentials
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   with:
+      #     role-to-assume: ${{ env.ROLE_ARN }}
+      #     aws-region: ${{ env.REGION }}
+
+      # ブランチ作成時にワークフローが実行されるため、コメントアウト
+      # - name: Build and deploy SAM application
+      #   run: |
+      #     sam build --config-env ${{ env.STAGE }}
+      #     sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --config-env ${{ env.STAGE }}

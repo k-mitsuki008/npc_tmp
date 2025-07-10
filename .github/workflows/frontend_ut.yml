@@ -1,0 +1,19 @@
+name: Run Tests
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - staging
+      - main
+    paths:
+      - 'frontend/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # コードをチェックアウト
+      - name: Checkout code
+        uses: actions/checkout@v3
