@@ -58,7 +58,7 @@ jobs:
           fi
           echo 'PHASE=${{ inputs.environment }}' >> $GITHUB_ENV 
           echo 'REGION=ap-northeast-1' >> $GITHUB_ENV
-          echo 'ROLE_ARN=arn:aws:iam::077239123954:role/npc-parkings-${{ env.PHASE }}-role-github-actions' >> $GITHUB_ENV
+          echo 'ROLE_ARN=arn:aws:iam::077239123954:role/npc-parkings-${{ inputs.environment }}-role-github-actions' >> $GITHUB_ENV
 
       - name: Setup credentials
         run: |
