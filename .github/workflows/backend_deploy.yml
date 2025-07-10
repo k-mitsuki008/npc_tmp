@@ -58,7 +58,7 @@ jobs:
           fi
 
           # 解決したアカウントIDを後続ステップで使えるように出力
-          echo ${{ env.ACCOUNT }}
+          echo "${{ env.ACCOUNT }}"
 
       # - name: Setup credentials
       #   uses: aws-actions/configure-aws-credentials@v4
