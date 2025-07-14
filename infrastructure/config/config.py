@@ -207,6 +207,7 @@ DEV_ACCOUNTS_PARAMS = {
             "ami_id": "ami-03598bf9d15814511",
             "instance_type": "t2.micro",
         },
+        
     ),
     "payments": create_param(
         param_class=PaymentsServiceParameter,
