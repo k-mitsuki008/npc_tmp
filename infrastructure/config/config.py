@@ -46,6 +46,10 @@ class ParkingsServiceParameter(ServiceParameter):
 
     central_account_id: str
     other_account_ids: dict
+    hosted_zone_id: str 
+    domain_name: str
+    sub_domains: dict
+    sub_domain_nameservers: dict
     ami_id: str
     instance_type: str
     # dynamodb_table_name: str
@@ -170,6 +174,17 @@ DEV_ACCOUNTS_PARAMS = {
                 "payments": get_env_var("NPC_PAYMENTS_DEV_ACCOUNT"),
                 "auth": get_env_var("NPC_AUTH_DEV_ACCOUNT"),
                 "integration": get_env_var("NPC_INTEGRATION_DEV_ACCOUNT"),
+            },
+            "hosted_zone_id": "Z0880119245A91RB6NNGO", 
+            "domain_name": "npc24dev.click",
+            "sub_domains": ["auth"],
+            "sub_domain_nameservers": {
+                "auth": [
+                    "ns-484.awsdns-60.com.",
+                    "ns-1042.awsdns-02.org.",
+                    "ns-1962.awsdns-53.co.uk.",
+                    "ns-989.awsdns-59.net."
+                ]
             },
             "ami_id": "ami-03598bf9d15814511",
             "instance_type": "t2.micro",

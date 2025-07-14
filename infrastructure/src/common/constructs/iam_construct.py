@@ -198,6 +198,23 @@ class IamConstruct(Construct):
             iam.ManagedPolicy.from_aws_managed_policy_name("AdministratorAccess")
         )
 
+        # 管理者IAMロールにGitHub用信頼ポリシーをアタッチ
+        assume_role_statement = iam.PolicyStatement(
+            actions=["sts:AssumeRole"],
+            principals=[iam.AccountPrincipal(central_account_id)],
+            conditions={
+                "StringEquals": {
+                    "sts:ExternalId": f"{env_name}"
+                }
+            }
+        )
+        tag_session_statement = iam.PolicyStatement(
+            actions=["sts:TagSession"],
+            principals=[iam.AccountPrincipal(central_account_id)]
+        )
+        administrators_role.assume_role_policy.add_statements(assume_role_statement)
+        administrators_role.assume_role_policy.add_statements(tag_session_statement)
+
         #########################
         #    ReadOnly用設定      #
         #########################

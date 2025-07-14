@@ -12,6 +12,7 @@ class PkIamConstruct(Construct):
         project: str,
         env_name: str,
         phase: str,
+        account_id: str,
         other_account_ids: dict,
         iam_groups: dict,
         **kwargs,
@@ -189,38 +190,17 @@ class PkIamConstruct(Construct):
                 iam.PolicyStatement(
                     effect=iam.Effect.ALLOW,
                     actions=[
-                        "apigateway:*",
-                        "cloudformation:*",
-                        "ec2:*",
-                        "iam:*",
-                        "lambda:*",
-                        "logs:*",
-                        "s3:*",
-                        "vpc:*",
+                        "sts:AssumeRole",
+                        "sts:TagSession"
                     ],
-                    resources=["*"],
-                ),
-                iam.PolicyStatement(
-                    effect=iam.Effect.DENY,
-                    actions=[
-                        "iam:AddUserToGroup",
-                        "iam:AttachGroupPolicy",
-                        "iam:AttachUserPolicy",
-                        "iam:CreateGroup",
-                        "iam:CreateUser",
-                        "iam:DeleteGroup",
-                        "iam:DeleteGroupPolicy",
-                        "iam:DeleteLoginProfile",
-                        "iam:DeleteUser",
-                        "iam:DeleteGroupPolicy",
-                        "iam:DetachUserPolicy",
-                        "iam:PutGroupPolicy",
-                        "iam:PutRolePermissionsBoundary",
-                        "iam:PutUserPolicy",
-                        "iam:RemoveUserFromGroup",
+                    resources=[
+                        f"arn:aws:iam::{other_account_ids["members"]}:role/{project}-members-{phase}-role-administrators",
+                        f"arn:aws:iam::{other_account_ids["payments"]}:role/{project}-payments-{phase}-role-administrators",
+                        f"arn:aws:iam::{other_account_ids["auth"]}:role/{project}-auth-{phase}-role-administrators",
+                        f"arn:aws:iam::{other_account_ids["integration"]}:role/{project}-integration-{phase}-role-administrators",
+                        f"arn:aws:iam::{account_id}:role/{project}-parkings-{phase}-role-administrators"
                     ],
-                    resources=["*"],
-                ),
-            ],
+                )
+            ]
         )
         github_actions_role.attach_inline_policy(github_actions_policy)

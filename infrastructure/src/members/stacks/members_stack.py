@@ -5,6 +5,7 @@ from src.common.constructs.compute_construct import ComputeConstruct
 from src.common.constructs.database_construct import DatabaseConstruct
 from src.common.constructs.iam_construct import IamConstruct
 from src.common.constructs.network_construct import NetworkConstruct
+from src.common.constructs.artifact_bucket import ArtifactBucketConstruct
 
 # from src.constructs.compute_construct import ComputeConstruct
 # from src.constructs.static_website_Construct import StaticWebHostingConstruct
@@ -46,6 +47,17 @@ class MembersStack(Stack):
             project=project,
             env_name=env_name,
             phase=phase,
+        )
+
+        ############################
+        #      ArtifactBucket      #
+        ############################
+        ArtifactBucketConstruct(
+            scope=self,
+            id="ArtifactBucketConstruct",
+            project=project,
+            env_name=env_name,
+            phase=phase
         )
 
         #########################

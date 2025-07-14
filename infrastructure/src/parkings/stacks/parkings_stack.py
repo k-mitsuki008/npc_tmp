@@ -6,6 +6,8 @@ from src.common.constructs.database_construct import DatabaseConstruct
 from src.common.constructs.iam_construct import IamConstruct
 from src.common.constructs.network_construct import NetworkConstruct
 from src.parkings.constructs.pk_iam_construct import PkIamConstruct
+from src.parkings.constructs.pk_route53_construct import PkRoute53Construct
+from src.common.constructs.artifact_bucket import ArtifactBucketConstruct
 
 # from src.constructs.static_website_Construct import StaticWebHostingConstruct
 
@@ -54,6 +56,7 @@ class ParkingsStack(Stack):
             project=project,
             env_name=env_name,
             phase=phase,
+            account_id=props.account_id,
             other_account_ids=props.other_account_ids,
             iam_groups=iam_groups,
         )
@@ -68,6 +71,17 @@ class ParkingsStack(Stack):
             project=project,
             env_name=env_name,
             phase=phase,
+        )
+
+        ############################
+        #      ArtifactBucket      #
+        ############################
+        ArtifactBucketConstruct(
+            scope=self,
+            id="ArtifactBucketConstruct",
+            project=project,
+            env_name=env_name,
+            phase=phase
         )
 
         #########################
@@ -113,3 +127,18 @@ class ParkingsStack(Stack):
 #            sub_domain_name=props.sub_domain_name,
 #            hosted_zone_id=props.hosted_zone_id,
 #        )
+
+        #########################
+        #    Route53 Records    #
+        #########################
+        PkRoute53Construct(
+            scope=self,
+            id="PkRoute53Construct",
+            project=project,
+            env_name=env_name,
+            phase=phase,
+            hosted_zone_id=props.hosted_zone_id, 
+            domain_name=props.domain_name,
+            sub_domains=props.sub_domains,
+            sub_domain_nameservers=props.sub_domain_nameservers
+        )

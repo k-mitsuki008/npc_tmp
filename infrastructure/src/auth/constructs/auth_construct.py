@@ -1,6 +1,9 @@
 from aws_cdk import Duration, RemovalPolicy
 from aws_cdk import aws_cognito as cognito
 from aws_cdk import aws_iam as iam
+from aws_cdk import aws_lambda as _lambda
+from aws_cdk import aws_logs as logs
+from aws_cdk import aws_ses as ses
 from constructs import Construct
 
 
@@ -16,6 +19,93 @@ class AuthConstruct(Construct):
     ) -> None:
         super().__init__(scope, id, **kwargs)
 
+        ############
+        #    SES   #
+        ############
+        identity = ses.EmailIdentity(
+            self,
+            "SesIdentity",
+            identity=ses.Identity.domain(my_domain)
+        )
+
+        # 2. (推奨) カスタムMAIL FROMドメインの設定
+        # これもRoute 53があれば、必要なMXレコードとSPFレコードが自動で作成されます。
+        identity.add_mail_from_domain(
+            mail_from_domain=f"mail.{my_domain}"
+        )
+
+        ###################################
+        #    AuthTokenValidatorFunction   #
+        ###################################
+        auth_token_validator_function_path = f"src/{env_name}/handlers/auth_token_validator"
+
+        auth_token_validator_function_log = logs.LogGroup(
+            self,
+            id="AuthTokenValidatorFunctionLog",
+            log_group_name=f"/aws/lambda/{project}-{env_name}-{phase}-auth-token-validator",
+            retention=logs.RetentionDays.THREE_MONTHS,
+            # removal_policy=RemovalPolicy.RETAIN
+            removal_policy=RemovalPolicy.DESTROY
+        )
+
+        auth_token_validator_function_role = iam.Role(
+            self,
+            id="AuthTokenValidatorFunctionRole",
+            role_name=f"{project}-{env_name}-{phase}-auth-token-validator-role",
+            assumed_by=iam.ServicePrincipal("lambda.amazonaws.com")
+        )
+
+        auth_token_validator_function = _lambda.Function(
+            self,
+            id="AuthTokenValidatorFunction",
+            function_name=f"{project}-{env_name}-{phase}-auth-token-validator",
+            runtime=_lambda.Runtime.PYTHON_3_13,
+            code=_lambda.Code.from_asset(auth_token_validator_function_path),
+            handler="lambda_function.lambda_handler",
+            role=auth_token_validator_function_role,
+            environment={
+                "SAMPLE": "SAMPLE"
+            },
+            timeout=Duration.seconds(60),
+            log_group=auth_token_validator_function_log
+        )
+
+        ###################################
+        #     AccessTokenClaimFunction    #
+        ###################################
+        access_token_claim_function_path = f"src/{env_name}/handlers/access_token_claim"
+
+        access_token_claim_function_log = logs.LogGroup(
+            self,
+            id="AccessTokenClaimFunctionLog",
+            log_group_name=f"/aws/lambda/{project}-{env_name}-{phase}-access-token-claim",
+            retention=logs.RetentionDays.THREE_MONTHS,
+            # removal_policy=RemovalPolicy.RETAIN
+            removal_policy=RemovalPolicy.DESTROY
+        )
+
+        access_token_claim_function_role = iam.Role(
+            self,
+            id="AccessTokenClaimFunctionRole",
+            role_name=f"{project}-{env_name}-{phase}-access-token-claim-role",
+            assumed_by=iam.ServicePrincipal("lambda.amazonaws.com")
+        )
+
+        access_token_claim_function = _lambda.Function(
+            self,
+            id="AccessTokenClaimFunction",
+            function_name=f"{project}-{env_name}-{phase}-access-token-claim",
+            runtime=_lambda.Runtime.PYTHON_3_13,
+            code=_lambda.Code.from_asset(access_token_claim_function_path),
+            handler="lambda_function.lambda_handler",
+            role=access_token_claim_function_role,
+            environment={
+                "SAMPLE": "SAMPLE"
+            },
+            timeout=Duration.seconds(60),
+            log_group=access_token_claim_function_log
+        )
+
         #########################
         #     User Pool         #
         #########################
@@ -26,18 +116,20 @@ class AuthConstruct(Construct):
             user_pool_name=f"{env_name}-{phase}-user-pool",
             # 自己サインアップを許可
             self_sign_up_enabled=True,
+            auto_verify=cognito.AutoVerifiedAttrs(
+                email=False
+            ),
             # ユーザー名の属性
             # user_name_attributes=[cognito.username_attributes.EMAIL],
             # サインインに使用できる属性
             sign_in_aliases=cognito.SignInAliases(
-                email=True,
-                username=True,
+                email=True
             ),
             # 標準属性の必須設定
             standard_attributes=cognito.StandardAttributes(
                 email=cognito.StandardAttribute(required=True, mutable=True),
-                # given_name=cognito.StandardAttribute(required=True, mutable=True),
-                # family_name=cognito.StandardAttribute(required=True, mutable=True),
+                given_name=cognito.StandardAttribute(required=False, mutable=True),
+                family_name=cognito.StandardAttribute(required=False, mutable=True),
             ),
             # パスワードポリシー
             password_policy=cognito.PasswordPolicy(
@@ -47,10 +139,16 @@ class AuthConstruct(Construct):
                 require_digits=True,
                 require_symbols=True,
                 temp_password_validity=Duration.days(7),
+                password_history_size=1
             ),
             # アカウント復旧設定
             account_recovery=cognito.AccountRecovery.EMAIL_ONLY,
             # メール設定
+            # email=cognito.UserPoolEmail.with_ses(
+            #     from_email=f"no-reply@{env_name}.example.com",
+            #     from_name=f"{project.upper()} Authentication",
+            #     reply_to="support@example.com",
+            # ),
             email=cognito.UserPoolEmail.with_cognito(
                 # from_email=f"no-reply@{env_name}.example.com",
                 # from_name=f"{project.upper()} Authentication",
@@ -62,6 +160,41 @@ class AuthConstruct(Construct):
             ),
             # mfa=cognito.Mfa.REQUIRED,
             # mfa_second_factor=cognito.MfaSecondFactor(sms=False, otp=False, email=True),
+            feature_plan=cognito.FeaturePlan.PLUS,
+            standard_threat_protection_mode=cognito.StandardThreatProtectionMode.FULL_FUNCTION,
+            custom_threat_protection_mode=cognito.CustomThreatProtectionMode.FULL_FUNCTION,
+            lambda_triggers=cognito.UserPoolTriggers(
+                pre_sign_up=auth_token_validator_function,
+                pre_token_generation=access_token_claim_function
+            )
+        )
+
+        cognito.CfnUserPoolRiskConfigurationAttachment(
+            self,
+            id="RiskConfigAttachment",
+            user_pool_id=user_pool.user_pool_id,
+            # この設定を全てのアプリクライアントに適用します
+            client_id="ALL",
+            # リスクレベルごとのアクションを定義
+            account_takeover_risk_configuration=cognito.CfnUserPoolRiskConfigurationAttachment.AccountTakeoverRiskConfigurationTypeProperty(
+                actions=cognito.CfnUserPoolRiskConfigurationAttachment.AccountTakeoverActionsTypeProperty(
+                    # リスク「低」の場合のアクション
+                    low_action=cognito.CfnUserPoolRiskConfigurationAttachment.AccountTakeoverActionTypeProperty(
+                        event_action="NO_ACTION",  # 何もしない (MFAをスキップ)
+                        notify=False
+                    ),
+                    # リスク「中」の場合のアクション
+                    medium_action=cognito.CfnUserPoolRiskConfigurationAttachment.AccountTakeoverActionTypeProperty(
+                        event_action="MFA_REQUIRED",  # MFAを要求
+                        notify=False
+                    ),
+                    # リスク「高」の場合のアクション
+                    high_action=cognito.CfnUserPoolRiskConfigurationAttachment.AccountTakeoverActionTypeProperty(
+                        event_action="MFA_REQUIRED",  # MFAを要求
+                        notify=False
+                    )
+                )
+            )
         )
 
         # # MFAの設定
@@ -118,10 +251,11 @@ class AuthConstruct(Construct):
                 user_password=True,
                 user_srp=True,
             ),
+            generate_secret=False,
             # トークン設定
-            id_token_validity=Duration.days(1),
-            access_token_validity=Duration.hours(1),
-            refresh_token_validity=Duration.days(30),
+            id_token_validity=Duration.minutes(5),
+            access_token_validity=Duration.minutes(5),
+            refresh_token_validity=Duration.days(3650),
             enable_token_revocation=True,
             prevent_user_existence_errors=True,
         )
