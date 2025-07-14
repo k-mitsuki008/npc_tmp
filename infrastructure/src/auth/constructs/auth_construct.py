@@ -22,17 +22,17 @@ class AuthConstruct(Construct):
         ############
         #    SES   #
         ############
-        identity = ses.EmailIdentity(
-            self,
-            "SesIdentity",
-            identity=ses.Identity.domain(my_domain)
-        )
+        # identity = ses.EmailIdentity(
+        #     self,
+        #     "SesIdentity",
+        #     identity=ses.Identity.domain(my_domain)
+        # )
 
-        # 2. (推奨) カスタムMAIL FROMドメインの設定
-        # これもRoute 53があれば、必要なMXレコードとSPFレコードが自動で作成されます。
-        identity.add_mail_from_domain(
-            mail_from_domain=f"mail.{my_domain}"
-        )
+        # # 2. (推奨) カスタムMAIL FROMドメインの設定
+        # # これもRoute 53があれば、必要なMXレコードとSPFレコードが自動で作成されます。
+        # identity.add_mail_from_domain(
+        #     mail_from_domain=f"mail.{my_domain}"
+        # )
 
         ###################################
         #    AuthTokenValidatorFunction   #
@@ -42,7 +42,7 @@ class AuthConstruct(Construct):
         auth_token_validator_function_log = logs.LogGroup(
             self,
             id="AuthTokenValidatorFunctionLog",
-            log_group_name=f"/aws/lambda/{project}-{env_name}-{phase}-auth-token-validator",
+            log_group_name=f"/aws/lambda/{env_name}-{phase}-auth-token-validator",
             retention=logs.RetentionDays.THREE_MONTHS,
             # removal_policy=RemovalPolicy.RETAIN
             removal_policy=RemovalPolicy.DESTROY
@@ -58,7 +58,7 @@ class AuthConstruct(Construct):
         auth_token_validator_function = _lambda.Function(
             self,
             id="AuthTokenValidatorFunction",
-            function_name=f"{project}-{env_name}-{phase}-auth-token-validator",
+            function_name=f"{env_name}-{phase}-auth-token-validator",
             runtime=_lambda.Runtime.PYTHON_3_13,
             code=_lambda.Code.from_asset(auth_token_validator_function_path),
             handler="lambda_function.lambda_handler",
@@ -78,7 +78,7 @@ class AuthConstruct(Construct):
         access_token_claim_function_log = logs.LogGroup(
             self,
             id="AccessTokenClaimFunctionLog",
-            log_group_name=f"/aws/lambda/{project}-{env_name}-{phase}-access-token-claim",
+            log_group_name=f"/aws/lambda/{env_name}-{phase}-access-token-claim",
             retention=logs.RetentionDays.THREE_MONTHS,
             # removal_policy=RemovalPolicy.RETAIN
             removal_policy=RemovalPolicy.DESTROY
@@ -94,7 +94,7 @@ class AuthConstruct(Construct):
         access_token_claim_function = _lambda.Function(
             self,
             id="AccessTokenClaimFunction",
-            function_name=f"{project}-{env_name}-{phase}-access-token-claim",
+            function_name=f"{env_name}-{phase}-access-token-claim",
             runtime=_lambda.Runtime.PYTHON_3_13,
             code=_lambda.Code.from_asset(access_token_claim_function_path),
             handler="lambda_function.lambda_handler",

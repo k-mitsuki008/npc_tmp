@@ -82,3 +82,4 @@ IntegrationStack(
 )
 
 app.synth()
+test
