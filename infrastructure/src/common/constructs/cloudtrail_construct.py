@@ -23,13 +23,13 @@ class cltConstruct(Construct):
         cltbucket = s3.Bucket(
             self,
             "cltbucket",
-            bucket_name=f"{project}-s3cloudtrail",  # 名前仮
+            bucket_name=f"{project}-s3cloudtrail",
         )
 
         myclt = cloudtrail.Trail(
             self,
             "mycldtrail",
-            trail_name=f"{env_name}-trail",  # 名前仮
+            trail_name=f"{env_name}-trail",
             bucket=cltbucket,
             s3_key_prefix="/AWSLogs/{accountID}",
             encryption_key=False,
