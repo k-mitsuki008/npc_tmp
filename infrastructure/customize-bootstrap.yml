@@ -683,6 +683,7 @@ Resources:
                   - route53:*
                   - s3:*
                   - secretsmanager:*
+                  - ses:*
                   - ssm:*
                   - states:*
                   - wafv2:*

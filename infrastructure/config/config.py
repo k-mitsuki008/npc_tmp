@@ -17,6 +17,7 @@ class AppParameter:
     project: str
     phase: str
     region: str
+    domain_name: str
 
 
 @dataclass(frozen=True)
@@ -83,7 +84,7 @@ class IntegrationServiceParameter(ServiceParameter):
 # 　  共通パラメータ定義       #
 #############################
 BASE_PARAMS = {
-    "dev": AppParameter(project="npc", phase="dev", region="ap-northeast-1"),
+    "dev": AppParameter(project="npc", phase="dev", region="ap-northeast-1", domain_name="npc24dev.click"),
     # stg, prdも同様
 }
 
@@ -176,14 +177,25 @@ DEV_ACCOUNTS_PARAMS = {
                 "integration": get_env_var("NPC_INTEGRATION_DEV_ACCOUNT"),
             },
             "hosted_zone_id": "Z0880119245A91RB6NNGO", 
-            "domain_name": "npc24dev.click",
-            "sub_domains": ["auth"],
+            "sub_domains": ["auth","members","payments"],
             "sub_domain_nameservers": {
                 "auth": [
                     "ns-484.awsdns-60.com.",
                     "ns-1042.awsdns-02.org.",
                     "ns-1962.awsdns-53.co.uk.",
                     "ns-989.awsdns-59.net."
+                ],
+                "members":[
+                    "ns-333.awsdns-41.com.",
+                    "ns-1519.awsdns-61.org.",
+                    "ns-1801.awsdns-33.co.uk.",
+                    "ns-1010.awsdns-62.net."
+                ],
+                "payments":[
+                    "ns-252.awsdns-31.com.",
+                    "ns-1733.awsdns-24.co.uk.",
+                    "ns-898.awsdns-48.net.",
+                    "ns-1138.awsdns-14.org."
                 ]
             },
             "ami_id": "ami-03598bf9d15814511",

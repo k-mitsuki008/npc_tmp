@@ -1,9 +1,12 @@
+from aws_cdk import Stack
 from aws_cdk import Duration, RemovalPolicy
 from aws_cdk import aws_cognito as cognito
 from aws_cdk import aws_iam as iam
 from aws_cdk import aws_lambda as _lambda
 from aws_cdk import aws_logs as logs
 from aws_cdk import aws_ses as ses
+from aws_cdk import aws_route53 as route53
+from aws_cdk import Duration
 from constructs import Construct
 
 
@@ -15,23 +18,34 @@ class AuthConstruct(Construct):
         project: str,
         env_name: str,
         phase: str,
+        domain_name: str,
         **kwargs,
     ) -> None:
         super().__init__(scope, id, **kwargs)
+
+        hosted_zone = route53.PublicHostedZone.from_lookup(
+            self,
+            "AuthHostZone",
+            domain_name=f"{env_name}.{domain_name}"
+        )
 
         ############
         #    SES   #
         ############
         identity = ses.EmailIdentity(
             self,
-            "SesIdentity",
-            identity=ses.Identity.domain(my_domain)
+            "Identity",
+            identity=ses.Identity.public_hosted_zone(hosted_zone),
+            mail_from_domain=f"mail.{env_name}.{domain_name}"
         )
-
-        # 2. (推奨) カスタムMAIL FROMドメインの設定
-        # これもRoute 53があれば、必要なMXレコードとSPFレコードが自動で作成されます。
-        identity.add_mail_from_domain(
-            mail_from_domain=f"mail.{my_domain}"
+        route53.TxtRecord(self,
+            "DmarcRecord",
+            zone=hosted_zone,
+            record_name=f"_dmarc.{env_name}.{domain_name}",
+            values=[
+                f"v=DMARC1; p=none; rua=mailto:dmarcreports@{env_name}.{domain_name}"
+            ],
+            ttl=Duration.hours(1)
         )
 
         ###################################
@@ -42,10 +56,9 @@ class AuthConstruct(Construct):
         auth_token_validator_function_log = logs.LogGroup(
             self,
             id="AuthTokenValidatorFunctionLog",
-            log_group_name=f"/aws/lambda/{project}-{env_name}-{phase}-auth-token-validator",
+            log_group_name=f"/aws/lambda/{env_name}-{phase}-auth-token-validator",
             retention=logs.RetentionDays.THREE_MONTHS,
-            # removal_policy=RemovalPolicy.RETAIN
-            removal_policy=RemovalPolicy.DESTROY
+            removal_policy=RemovalPolicy.RETAIN
         )
 
         auth_token_validator_function_role = iam.Role(
@@ -58,7 +71,7 @@ class AuthConstruct(Construct):
         auth_token_validator_function = _lambda.Function(
             self,
             id="AuthTokenValidatorFunction",
-            function_name=f"{project}-{env_name}-{phase}-auth-token-validator",
+            function_name=f"{env_name}-{phase}-auth-token-validator",
             runtime=_lambda.Runtime.PYTHON_3_13,
             code=_lambda.Code.from_asset(auth_token_validator_function_path),
             handler="lambda_function.lambda_handler",
@@ -78,10 +91,9 @@ class AuthConstruct(Construct):
         access_token_claim_function_log = logs.LogGroup(
             self,
             id="AccessTokenClaimFunctionLog",
-            log_group_name=f"/aws/lambda/{project}-{env_name}-{phase}-access-token-claim",
+            log_group_name=f"/aws/lambda/{env_name}-{phase}-access-token-claim",
             retention=logs.RetentionDays.THREE_MONTHS,
-            # removal_policy=RemovalPolicy.RETAIN
-            removal_policy=RemovalPolicy.DESTROY
+            removal_policy=RemovalPolicy.RETAIN
         )
 
         access_token_claim_function_role = iam.Role(
@@ -94,7 +106,7 @@ class AuthConstruct(Construct):
         access_token_claim_function = _lambda.Function(
             self,
             id="AccessTokenClaimFunction",
-            function_name=f"{project}-{env_name}-{phase}-access-token-claim",
+            function_name=f"{env_name}-{phase}-access-token-claim",
             runtime=_lambda.Runtime.PYTHON_3_13,
             code=_lambda.Code.from_asset(access_token_claim_function_path),
             handler="lambda_function.lambda_handler",
@@ -119,8 +131,6 @@ class AuthConstruct(Construct):
             auto_verify=cognito.AutoVerifiedAttrs(
                 email=False
             ),
-            # ユーザー名の属性
-            # user_name_attributes=[cognito.username_attributes.EMAIL],
             # サインインに使用できる属性
             sign_in_aliases=cognito.SignInAliases(
                 email=True
@@ -144,15 +154,11 @@ class AuthConstruct(Construct):
             # アカウント復旧設定
             account_recovery=cognito.AccountRecovery.EMAIL_ONLY,
             # メール設定
-            # email=cognito.UserPoolEmail.with_ses(
-            #     from_email=f"no-reply@{env_name}.example.com",
-            #     from_name=f"{project.upper()} Authentication",
-            #     reply_to="support@example.com",
-            # ),
-            email=cognito.UserPoolEmail.with_cognito(
-                # from_email=f"no-reply@{env_name}.example.com",
-                # from_name=f"{project.upper()} Authentication",
-                reply_to="support@example.com",
+            email=cognito.UserPoolEmail.with_ses(
+                from_email=f"no-reply@{env_name}.{domain_name}",
+                from_name=f"{project.upper()} Authentication",
+                ses_verified_domain=f"{env_name}.{domain_name}",
+                ses_region=Stack.of(self).region,
             ),
             # 削除ポリシー
             removal_policy=(
@@ -196,18 +202,6 @@ class AuthConstruct(Construct):
                 )
             )
         )
-
-        # # MFAの設定
-        # user_pool.add_client_authentication(
-        #     cognito.UserPoolClientIdentityProvider.COGNITO
-        # )
-        # user_pool.set_mfa_config(
-        #     mfa=cognito.Mfa.OPTIONAL,
-        #     mfa_second_factor=cognito.MfaSecondFactor(
-        #         sms=True,
-        #         otp=True,
-        #     ),
-        # )
 
         # ドメイン設定
         domain = user_pool.add_domain(

@@ -68,6 +68,7 @@ class AuthStack(Stack):
             project=project,
             env_name=env_name,
             phase=phase,
+            domain_name = props.domain_name
         )
 
 
