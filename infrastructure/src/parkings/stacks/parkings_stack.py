@@ -8,6 +8,7 @@ from src.common.constructs.network_construct import NetworkConstruct
 from src.parkings.constructs.pk_iam_construct import PkIamConstruct
 from src.parkings.constructs.pk_route53_construct import PkRoute53Construct
 from src.common.constructs.artifact_bucket import ArtifactBucketConstruct
+from src.common.constructs.cloudtrail_construct import cloudtrailConstruct
 
 # from src.constructs.static_website_Construct import StaticWebHostingConstruct
 
@@ -81,7 +82,7 @@ class ParkingsStack(Stack):
             id="ArtifactBucketConstruct",
             project=project,
             env_name=env_name,
-            phase=phase
+            phase=phase,
         )
 
         #########################
@@ -111,22 +112,21 @@ class ParkingsStack(Stack):
             bastion_sg=compute_construnt.bastion_sg,
         )
 
-
-#
-#        #########################
-#        #  Static Web Hosting   #
-#        #########################
-#        StaticWebHostingConstruct(
-#            scope=self,
-#            id="ComputeConstruct",
-#            project=project,
-#            env_name=env_name,
-#            phase=phase,
-#            certificate=props.certificate,
-#            domain_name=props.domain_name,
-#            sub_domain_name=props.sub_domain_name,
-#            hosted_zone_id=props.hosted_zone_id,
-#        )
+        #
+        #        #########################
+        #        #  Static Web Hosting   #
+        #        #########################
+        #        StaticWebHostingConstruct(
+        #            scope=self,
+        #            id="ComputeConstruct",
+        #            project=project,
+        #            env_name=env_name,
+        #            phase=phase,
+        #            certificate=props.certificate,
+        #            domain_name=props.domain_name,
+        #            sub_domain_name=props.sub_domain_name,
+        #            hosted_zone_id=props.hosted_zone_id,
+        #        )
 
         #########################
         #    Route53 Records    #
@@ -137,8 +137,19 @@ class ParkingsStack(Stack):
             project=project,
             env_name=env_name,
             phase=phase,
-            hosted_zone_id=props.hosted_zone_id, 
+            hosted_zone_id=props.hosted_zone_id,
             domain_name=props.domain_name,
             sub_domains=props.sub_domains,
-            sub_domain_nameservers=props.sub_domain_nameservers
+            sub_domain_nameservers=props.sub_domain_nameservers,
+        )
+
+        #########################
+        #      Cloudtrail      #
+        #########################
+        cloudtrailConstruct(
+            self,
+            id="cloudtrailConstruct",
+            project=project,
+            env_name=env_name,
+            phase=phase,
         )
