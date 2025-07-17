@@ -4,6 +4,7 @@ from constructs import Construct
 from src.common.constructs.iam_construct import IamConstruct
 from src.common.constructs.network_construct import NetworkConstruct
 from src.common.constructs.artifact_bucket import ArtifactBucketConstruct
+from src.payments.constructs.pm_waf_construct import paymentsWafConstruct
 
 # from src.constructs.compute_construct import ComputeConstruct
 # from src.constructs.static_website_Construct import StaticWebHostingConstruct
@@ -55,32 +56,43 @@ class PaymentsStack(Stack):
             id="ArtifactBucketConstruct",
             project=project,
             env_name=env_name,
-            phase=phase
+            phase=phase,
         )
 
-#        #########################
-#        # Conpute(EC2, keypar)  #
-#        #########################
-#        ComputeConstruct(
-#            scope=self,
-#            id="ComputeConstruct",
-#            project=project,
-#            phase=phase,
-#            ami_id=props.ami_id,  # 環境固有のパラメーター
-#            vpc_obj=network_construnt.vpc_obj  # Conscruct共有リソース
-#        )
-#
-#        #########################
-#        #  Static Web Hosting   #
-#        #########################
-#        StaticWebHostingConstruct(
-#            scope=self,
-#            id="ComputeConstruct",
-#            project=project,
-#            env_name=env_name,
-#            phase=phase,
-#            certificate=props.certificate,
-#            domain_name=props.domain_name,
-#            sub_domain_name=props.sub_domain_name,
-#            hosted_zone_id=props.hosted_zone_id,
-#        )
+        #        #########################
+        #        # Conpute(EC2, keypar)  #
+        #        #########################
+        #        ComputeConstruct(
+        #            scope=self,
+        #            id="ComputeConstruct",
+        #            project=project,
+        #            phase=phase,
+        #            ami_id=props.ami_id,  # 環境固有のパラメーター
+        #            vpc_obj=network_construnt.vpc_obj  # Conscruct共有リソース
+        #        )
+        #
+        #        #########################
+        #        #  Static Web Hosting   #
+        #        #########################
+        #        StaticWebHostingConstruct(
+        #            scope=self,
+        #            id="ComputeConstruct",
+        #            project=project,
+        #            env_name=env_name,
+        #            phase=phase,
+        #            certificate=props.certificate,
+        #            domain_name=props.domain_name,
+        #            sub_domain_name=props.sub_domain_name,
+        #            hosted_zone_id=props.hosted_zone_id,
+        #        )
+
+        #########################
+        #          waf         #
+        #########################
+        paymentsWafConstruct(
+            scope=self,
+            id="paymentswafConstruct",
+            project=project,
+            env_name=env_name,
+            phase=phase,
+        )

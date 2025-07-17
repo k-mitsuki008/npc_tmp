@@ -6,6 +6,7 @@ from src.common.constructs.database_construct import DatabaseConstruct
 from src.common.constructs.iam_construct import IamConstruct
 from src.common.constructs.network_construct import NetworkConstruct
 from src.common.constructs.artifact_bucket import ArtifactBucketConstruct
+from src.members.constructs.mb_waf_construct import MembersWafConstruct
 
 # from src.constructs.compute_construct import ComputeConstruct
 # from src.constructs.static_website_Construct import StaticWebHostingConstruct
@@ -57,7 +58,7 @@ class MembersStack(Stack):
             id="ArtifactBucketConstruct",
             project=project,
             env_name=env_name,
-            phase=phase
+            phase=phase,
         )
 
         #########################
@@ -87,19 +88,29 @@ class MembersStack(Stack):
             bastion_sg=compute_construnt.bastion_sg,
         )
 
+        #
+        #        #########################
+        #        #  Static Web Hosting   #
+        #        #########################
+        #        StaticWebHostingConstruct(
+        #            scope=self,
+        #            id="ComputeConstruct",
+        #            project=project,
+        #            env_name=env_name,
+        #            phase=phase,
+        #            certificate=props.certificate,
+        #            domain_name=props.domain_name,
+        #            sub_domain_name=props.sub_domain_name,
+        #            hosted_zone_id=props.hosted_zone_id,
+        #        )
 
-#
-#        #########################
-#        #  Static Web Hosting   #
-#        #########################
-#        StaticWebHostingConstruct(
-#            scope=self,
-#            id="ComputeConstruct",
-#            project=project,
-#            env_name=env_name,
-#            phase=phase,
-#            certificate=props.certificate,
-#            domain_name=props.domain_name,
-#            sub_domain_name=props.sub_domain_name,
-#            hosted_zone_id=props.hosted_zone_id,
-#        )
+        #########################
+        #          waf         #
+        #########################
+        MembersWafConstruct(
+            scope=self,
+            id="memberswafConstruct",
+            project=project,
+            env_name=env_name,
+            phase=phase,
+        )
